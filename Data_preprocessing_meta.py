@@ -46,7 +46,7 @@ from nltk.corpus import stopwords
 
 def apply_stop_words(tokenized_text):
     stop_words = stopwords.words('english') 
-    stop_words.extend(["e","i","g"])
+    stop_words.extend(["e","i","g","use","ieee"]) # ei, ig 등 문장을 축약하는 언어 제거
     result = []
     for tok_list in tokenized_text:
         tok_result =[]
@@ -108,7 +108,7 @@ def apply_lancaster(tokenized_text):
     return result 
 
 # data 불러오기
-row_data = pd.read_csv("C:/Users/82109/GitHub/Metaverse_Technology_Trend_Research/data/metaverse_2042.csv")
+row_data = pd.read_csv("C:/Users/82109/GitHub/Metaverse_Technology_Trend_Research/data/metaverse_190.csv")
 #기본적인 전처리 과정
 paper_notnull = row_data.fillna("")
 data = [row['Title'] + row['Abstract'] for idx, row in paper_notnull.iterrows()]
@@ -127,9 +127,8 @@ for l in result_tagging:
     s= [tagged_word for tagged_word in l if tagged_word[1].startswith(('J', 'V', 'N', 'R'))]
     result_tagging_alpha.append(s)
 result_lemma = apply_lemma(result_tagging_alpha)
-
-
+a = apply_stop_words(result_lemma)
 # pickle 파일로 저장
-with open('data/preprocessing_data(2042)_title_abstract.pickle', 'wb') as f:
-    pickle.dump(result_lemma, f, pickle.HIGHEST_PROTOCOL)
+with open('data/preprocessing_data(190)_title_abstract.pickle', 'wb') as f:
+    pickle.dump(apply_stop_words(result_lemma), f, pickle.HIGHEST_PROTOCOL)
     

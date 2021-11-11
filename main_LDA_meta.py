@@ -12,11 +12,11 @@ from sklearn.cluster import KMeans
 import seaborn as sns
 import re
 
-now = '211020_' # 오늘날짜
-file_path ='C:/Users/82109/GitHub/Metaverse_Technology_Trend_Research/data'
+now = '211108_' # 오늘날짜
+file_path ='C:/Users/82109/GitHub/Metaverse_Technology_Trend_Research/data/output_190/'
 
 #preprocessing 완료된 document pickle 파일 열기
-with open('data/preprocessing_data(2042)_title_abstract.pickle',"rb") as fr:
+with open('data/preprocessing_data(190)_title_abstract.pickle',"rb") as fr:
           tokenized_doc = pickle.load(fr)
 
 # LDA 구현 
@@ -24,7 +24,7 @@ with open('data/preprocessing_data(2042)_title_abstract.pickle',"rb") as fr:
 dictionary = corpora.Dictionary(tokenized_doc) # tokenized 데이터를 통해 dictionary로 변환
 dictionary.filter_extremes(no_below=5, no_above=0.5) # 출현빈도 적거나 많으면 삭제
 corpus = [dictionary.doc2bow(text) for text in tokenized_doc] # 코퍼스 구성
-ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics = 20, id2word=dictionary, iterations= 600, passes = 30, random_state = 1004 ) 
+ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics = 10, id2word=dictionary, iterations= 500, passes = 30, random_state = 1004 ) 
 
 def make_topic_model(ldamodel,num_topic,num_word):
     
@@ -97,7 +97,7 @@ def make_topic_simliarity(ladmodel,corpus,num_topic, num_cluster):
     TSNE_vetor = TSNE(n_components=2).fit_transform(simliarity_vetor)# component = 차원
     Q = pd.DataFrame(TSNE_vetor) # dataframe으로 변경하여 K-means cluster lavel 열 추가
     Q["clusters"] = clusters #lavel 추가
-    fig, ax = plt.subplots(figsize=(24,15))
+    fig, ax = plt.subplots(figsize=(12,8))
     sns.scatterplot(data = Q, x=0, y=1, hue= clusters, palette='deep')
     plt.show()
     print("visualizer complete!")
@@ -106,19 +106,64 @@ def make_topic_simliarity(ladmodel,corpus,num_topic, num_cluster):
     
 ###########################################################################
 # 적용(LDA 구현했을 때 파라미터 동일하게 해야됨)
-make_topic_model(ldamodel, num_topic=20, num_word=20)
-make_topic_table(ldamodel, corpus, num_topic =45)   
-make_topic_simliarity(ldamodel,corpus,num_topic= 45, num_cluster = 45)
+make_topic_model(ldamodel, num_topic=10, num_word=20)
+make_topic_table(ldamodel, corpus, num_topic =10)   
+make_topic_simliarity(ldamodel,corpus,num_topic=10, num_cluster =10)
 ###########################################################################
-
 # 빈도수 그래프
-df = pd.read_csv("C:/Users/82109/GitHub/Metaverse_Technology_Trend_Research/data/210928_Topic=45_table.csv")
+df = pd.read_csv("C:/Users/82109/GitHub/Metaverse_Technology_Trend_Research/data/output_190/211108_Topic=10_table.csv")
+b= df["가장 비중이 높은 토픽"]
 a= df["가장 비중이 높은 토픽"].value_counts()
 ax = a.plot(kind='bar', title='Number of documents per topic', figsize=(12, 4), legend=None)
 ax.set_xlabel('Topics', fontsize=12)          # x축 정보 표시
 ax.set_ylabel('Number of documents', fontsize=12)     # y축 정보 표시
 
 ###########################################
+#워드클라우드
+import numpy as np
+import pandas as pd
+import collections
+import seaborn as sns
+import pickle
+from wordcloud import WordCloud
+from matplotlib import pyplot as plt
+from sklearn.manifold import TSNE
+
+#tokenized wordlist 불러오기
+with open('C:/Users/82109/GitHub/Metaverse_Technology_Trend_Research/data/preprocessing_data(190)_title_abstract.pickle', "rb") as fr:
+    tokenized_doc = pickle.load(fr)
+#re_cluster id 불러오기
+df = pd.read_csv("C:/Users/82109/GitHub/Metaverse_Technology_Trend_Research/data/output_190/211108_Topic=20_table.csv")
+cluster_id= df["가장 비중이 높은 토픽"]
+
+#불용어 제거
+def apply_stop_words(tokenized_text):
+    stop_words = ['society','ieee','korean','use']
+    result = [tok for tok in tokenized_text if tok not in stop_words]
+    return result
+
+# Wordcloud 실행
+cluster_wordlist = pd.DataFrame(columns=['cluster_id', 'word'])
+cluster_wordlist['word'] =tokenized_doc
+cluster_wordlist['cluster_id'] = cluster_id
+test0 = cluster_wordlist[cluster_wordlist['cluster_id']==11]['word']
+# Generate a wordcloud
+word_counts = collections.Counter(cluster_wordlist['word'].sum())
+wordcloud = WordCloud(font_path=r'C:/Users/82109/GitHub/doc2vec/글꼴/Helvetica 400.ttf', 
+                      background_color='white', 
+                      colormap='tab20c', 
+                      min_font_size=20,
+                      max_font_size=400,
+                      max_words = 200,
+                      width=1600, height=800,random_state=(1004)).generate_from_frequencies(word_counts)
+plt.figure(figsize=(20, 20))
+plt.imshow(wordcloud)
+plt.axis('off')
+plt.savefig('temp2.png')
+plt.show()
+
+
+
 # clustering 빈도수 그래프
 num_topic = 40
 cluster_n = 20
